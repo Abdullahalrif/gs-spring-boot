@@ -1,44 +1,24 @@
-pipeline {
-	agent none
+   node {
+      stage('init') {
+        checkout scm
+      }
+      stage('build') {
+        sh 'mvn clean package'
+      }
+      stage('deploy') {
+        withCredentials([azureServicePrincipal('azure_service_principal')]) {
+          // Log in to Azure
+          sh '''
+            az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZURE_TENANT_ID
+            az account set -s $AZURE_SUBSCRIPTION_ID
+          '''  
+          // Set default resource group name and service name. Replace <resource group name> and <service name> with the right values
+          sh 'az config set defaults.group=jenkins'
+          sh 'az config set defaults.spring=cicd-service'
 
-	triggers {
-		pollSCM 'H/10 * * * *'
-	}
-
-	options {
-		disableConcurrentBuilds()
-		buildDiscarder(logRotator(numToKeepStr: '14'))
-	}
-
-	stages {
-		stage("test: baseline (jdk8)") {
-			agent {
-				docker {
-					image 'adoptopenjdk/openjdk8:latest'
-					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
-				}
-			}
-			options { timeout(time: 30, unit: 'MINUTES') }
-			steps {
-				sh 'test/run.sh'
-			}
-		}
-
-	}
-
-	post {
-		changed {
-			script {
-				slackSend(
-						color: (currentBuild.currentResult == 'SUCCESS') ? 'good' : 'danger',
-						channel: '#sagan-content',
-						message: "${currentBuild.fullDisplayName} - `${currentBuild.currentResult}`\n${env.BUILD_URL}")
-				emailext(
-						subject: "[${currentBuild.fullDisplayName}] ${currentBuild.currentResult}",
-						mimeType: 'text/html',
-						recipientProviders: [[$class: 'CulpritsRecipientProvider'], [$class: 'RequesterRecipientProvider']],
-						body: "<a href=\"${env.BUILD_URL}\">${currentBuild.fullDisplayName} is reported as ${currentBuild.currentResult}</a>")
-			}
-		}
-	}
-}
+          // Deploy applications
+          sh 'az spring app deploy --jar-path ./complete/target/spring-boot-complete-0.0.1-SNAPSHOT.jar'
+          sh 'az logout'
+        }
+      }
+    }
