@@ -3,7 +3,9 @@
         checkout scm
       }
       stage('build') {
-        sh 'mvn clean package'
+        dir("/var/lib/jenkins/workspace/Deploy-DemoApp/complete") {
+                sh 'mvn clean package'
+        }
       }
       stage('deploy') {
         withCredentials([azureServicePrincipal('azure_service_principal')]) {
