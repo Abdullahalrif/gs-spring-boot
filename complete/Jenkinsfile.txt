@@ -18,8 +18,6 @@
 
           // Deploy applications
           sh 'az spring app deploy -n gateway --jar-path ./gateway/target/gateway.jar'
-          sh 'az spring app deploy -n account-service --jar-path ./account-service/target/account-service.jar'
-          sh 'az spring app deploy -n auth-service --jar-path ./auth-service/target/auth-service.jar'
           sh 'az logout'
         }
       }
