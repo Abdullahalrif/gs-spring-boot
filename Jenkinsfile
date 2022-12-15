@@ -20,7 +20,8 @@
 
           // Deploy applications
           sh 'az config set extension.use_dynamic_install=yes_without_prompt'
-          sh 'az spring app deploy --jar-path ./complete/target/spring-boot-complete-0.0.1-SNAPSHOT.jar'
+          //sh 'az spring app deploy --jar-path ./complete/target/spring-boot-complete-0.0.1-SNAPSHOT.jar'
+          sh 'az spring app deploy -n gs-demo -s cicd-service -g jenkins --jar-path ./complete/target/spring-boot-complete-0.0.1-SNAPSHOT.jar'
           sh 'az logout'
         }
       }
