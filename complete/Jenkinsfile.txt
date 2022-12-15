@@ -17,7 +17,7 @@
           sh 'az config set defaults.spring=cicd-service'
 
           // Deploy applications
-          sh 'az spring app deploy --jar-path ./complete/target/spring-boot-complete-0.0.1-SNAPSHOT.jar'
+          sh 'az spring app deploy -n gs-demo --jar-path ./complete/target/spring-boot-complete-0.0.1-SNAPSHOT.jar'
           sh 'az logout'
         }
       }
